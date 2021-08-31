@@ -1,58 +1,20 @@
-package com.zaich.viewmodel
+package com.zaich.mainviewmodel
 
-import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
 import android.util.Log
-import android.view.View
-import android.widget.LinearLayout
-import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import com.loopj.android.http.AsyncHttpClient
 import com.loopj.android.http.AsyncHttpResponseHandler
-import com.zaich.mainviewmodel.MainViewModel
-import com.zaich.viewmodel.databinding.ActivityMainBinding
+import com.zaich.viewmodel.WeatherItems
 import cz.msebera.android.httpclient.Header
 import org.json.JSONObject
 import java.text.DecimalFormat
 
-class MainActivity : AppCompatActivity() {
+class MainViewModel:ViewModel() {
+    val listWeathers = MutableLiveData<ArrayList<WeatherItems>>()
 
-    private lateinit var adapter: WeatherAdapter
-    private lateinit var binding: ActivityMainBinding
-
-    //viewModel
-    private lateinit var mainViewModel:MainViewModel
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        adapter= WeatherAdapter()
-        adapter.notifyDataSetChanged()
-
-        binding.recyclerView.layoutManager = LinearLayoutManager(this)
-        binding.recyclerView.adapter = adapter
-
-        mainViewModel = ViewModelProvider(this,ViewModelProvider.NewInstanceFactory()).get(MainViewModel::class.java)
-
-        binding.btnCity.setOnClickListener {
-            val city = binding.editCity.text.toString()
-            if (city.isEmpty()) return@setOnClickListener
-            showLoading(true)
-
-            mainViewModel.setWeather(city)
-        }
-
-        mainViewModel.getWeather().observe(this,{ WeatherItems->
-            if (WeatherItems != null){
-                adapter.setData(WeatherItems)
-                showLoading(false)
-            }
-        })
-    }
-
-/*    private fun setWeather(cities: String) {
+    fun setWeather(cities: String){
         val listItems = ArrayList<WeatherItems>()
 
         val apiKey ="ISI SESUAI API KEY ANDA"
@@ -81,10 +43,8 @@ class MainActivity : AppCompatActivity() {
                         val tempInCelsius = tempInKelvin - 273
                         weatherItems.temperature = DecimalFormat("##.##").format(tempInCelsius)
                         listItems.add(weatherItems)
-                }
-                    //set data ke adapter
-                    adapter.setData(listItems)
-                    showLoading(false)
+                    }
+                    listWeathers.postValue(listItems)
                 } catch (e: Exception) {
                     Log.d("Exception", e.message.toString())
                 }
@@ -100,15 +60,8 @@ class MainActivity : AppCompatActivity() {
             }
 
         })
-    }*/
-
-    private fun showLoading(state: Boolean) {
-        if (state) {
-            binding.progressBar.visibility = View.VISIBLE
-        } else {
-            binding.progressBar.visibility = View.GONE
-        }
     }
-
-
+    fun getWeather():LiveData<ArrayList<WeatherItems>>{
+        return  listWeathers
+    }
 }
